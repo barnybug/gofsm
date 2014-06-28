@@ -2,6 +2,7 @@ package gofsm
 
 import (
 	"testing"
+	"time"
 
 	. "github.com/motain/gocheck"
 )
@@ -40,17 +41,28 @@ func (s *S) TestSimple(c *C) {
 	c.Assert(dog.State.Name, Equals, "Eating")
 	c.Assert((<-aut.Actions).Name, Equals, "woof()")
 	c.Assert((<-aut.Actions).Name, Equals, "eat('apple')")
-	c.Assert(<-aut.Changes, Equals, Change{"simple", "Hungry", "Eating"})
+	ch := <-aut.Changes
+	c.Assert(ch.Old, Equals, "Hungry")
+	c.Assert(ch.New, Equals, "Eating")
+	c.Assert(ch.Duration < time.Millisecond, Equals, true)
 
 	dog.Process("food.meat")
 	c.Assert(dog.State.Name, Equals, "Full")
 	c.Assert((<-aut.Actions).Name, Equals, "groan()")
 	c.Assert((<-aut.Actions).Name, Equals, "digest()")
-	c.Assert(<-aut.Changes, Equals, Change{"simple", "Eating", "Full"})
+	ch = <-aut.Changes
+	c.Assert(ch.Old, Equals, "Eating")
+	c.Assert(ch.New, Equals, "Full")
+	c.Assert(ch.Duration < time.Millisecond, Equals, true)
+
+	time.Sleep(time.Millisecond)
 
 	dog.Process("run")
 	c.Assert(dog.State.Name, Equals, "Hungry")
-	c.Assert(<-aut.Changes, Equals, Change{"simple", "Full", "Hungry"})
+	ch = <-aut.Changes
+	c.Assert(ch.Old, Equals, "Full")
+	c.Assert(ch.New, Equals, "Hungry")
+	c.Assert(ch.Duration > time.Millisecond, Equals, true)
 
 	c.Assert(aut.String(), Equals, "simple: Hungry")
 }

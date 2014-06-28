@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"gopkg.in/v1/yaml"
 )
@@ -15,8 +16,6 @@ type Automata struct {
 	Actions   chan Action
 	Changes   chan Change
 }
-
-type Persist map[string]string
 
 type State struct {
 	Name     string
@@ -54,6 +53,7 @@ type Automaton struct {
 	Transitions map[string][]Transition
 	Name        string
 	State       *State
+	Since       time.Time
 	actions     chan Action
 	changes     chan Change
 	sm          map[string]*State
@@ -68,6 +68,8 @@ type Change struct {
 	Automaton string
 	Old       string
 	New       string
+	Since     time.Time
+	Duration  time.Duration
 }
 
 func (self Action) String() string {
@@ -119,8 +121,11 @@ func (self *Automaton) Process(event interface{}) {
 			// change state
 			if self.State.Name != t.Next {
 				old := self.State.Name
+				oldSince := self.Since
 				self.State = self.sm[t.Next]
-				self.changes <- Change{Automaton: self.Name, Old: old, New: t.Next}
+				self.Since = time.Now()
+				duration := self.Since.Sub(oldSince)
+				self.changes <- Change{Automaton: self.Name, Old: old, New: t.Next, Duration: duration, Since: oldSince}
 			}
 			// emit entering actions
 			for _, action := range self.State.Entering {
@@ -158,6 +163,7 @@ func (self *Automaton) load() error {
 	if self.State, ok = sm[self.Start]; !ok {
 		return errors.New("starting State invalid")
 	}
+	self.Since = time.Now()
 
 	type StringPair struct {
 		_1 string
@@ -217,18 +223,26 @@ func (self *Automaton) load() error {
 	return nil
 }
 
-func (self *Automata) Persist() Persist {
-	ret := Persist{}
+type AutomataState map[string]AutomatonState
+
+type AutomatonState struct {
+	State string
+	Since time.Time
+}
+
+func (self *Automata) Persist() AutomataState {
+	ret := AutomataState{}
 	for k, aut := range self.Automaton {
-		ret[k] = aut.State.Name
+		ret[k] = AutomatonState{aut.State.Name, aut.Since}
 	}
 	return ret
 }
 
-func (self *Automata) Restore(p Persist) {
-	for k, st := range p {
+func (self *Automata) Restore(s AutomataState) {
+	for k, as := range s {
 		if aut, ok := self.Automaton[k]; ok {
-			aut.State, _ = aut.sm[st]
+			aut.State, _ = aut.sm[as.State]
+			aut.Since = as.Since
 		}
 	}
 }
