@@ -98,11 +98,13 @@ func (self *Automata) Process(event interface{}) {
 
 func (self *Automata) String() string {
 	var out string
+	now := time.Now()
 	for k, aut := range self.Automaton {
 		if out != "" {
-			out += ", "
+			out += "\n"
 		}
-		out += fmt.Sprintf("%s: %s", k, aut.State.Name)
+		du := now.Sub(aut.Since)
+		out += fmt.Sprintf("%s: %s for %s", k, aut.State.Name, du)
 	}
 	return out
 }

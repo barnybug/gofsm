@@ -64,7 +64,7 @@ func (s *S) TestSimple(c *C) {
 	c.Assert(ch.New, Equals, "Hungry")
 	c.Assert(ch.Duration > time.Millisecond, Equals, true)
 
-	c.Assert(aut.String(), Equals, "simple: Hungry")
+	c.Assert(aut.String(), Matches, "simple: Hungry for .*")
 }
 
 func (s *S) TestPersistRestore(c *C) {
