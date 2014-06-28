@@ -62,6 +62,7 @@ type Automaton struct {
 type Action struct {
 	Name    string
 	Trigger interface{}
+	Change  Change
 }
 
 type Change struct {
@@ -110,26 +111,31 @@ func (self *Automaton) Process(event interface{}) {
 	str := fmt.Sprint(event)
 	for _, t := range self.State.Steps {
 		if t.When.Match(str) {
+			now := time.Now()
+			var change Change
+			// is a state change happening
+			if self.State.Name != t.Next {
+				duration := now.Sub(self.Since)
+				change = Change{Automaton: self.Name, Old: self.State.Name, New: t.Next, Duration: duration, Since: self.Since}
+			}
+
 			// emit leaving actions
 			for _, action := range self.State.Leaving {
-				self.actions <- Action{action, event}
+				self.actions <- Action{action, event, change}
 			}
 			// emit transition actions
 			for _, action := range t.Actions {
-				self.actions <- Action{action, event}
+				self.actions <- Action{action, event, change}
 			}
 			// change state
 			if self.State.Name != t.Next {
-				old := self.State.Name
-				oldSince := self.Since
 				self.State = self.sm[t.Next]
-				self.Since = time.Now()
-				duration := self.Since.Sub(oldSince)
-				self.changes <- Change{Automaton: self.Name, Old: old, New: t.Next, Duration: duration, Since: oldSince}
+				self.Since = now
+				self.changes <- change
 			}
 			// emit entering actions
 			for _, action := range self.State.Entering {
-				self.actions <- Action{action, event}
+				self.actions <- Action{action, event, change}
 			}
 		}
 	}
