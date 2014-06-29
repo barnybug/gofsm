@@ -71,6 +71,7 @@ type Change struct {
 	New       string
 	Since     time.Time
 	Duration  time.Duration
+	Trigger   interface{}
 }
 
 func (self Action) String() string {
@@ -118,7 +119,7 @@ func (self *Automaton) Process(event interface{}) {
 			// is a state change happening
 			if self.State.Name != t.Next {
 				duration := now.Sub(self.Since)
-				change = Change{Automaton: self.Name, Old: self.State.Name, New: t.Next, Duration: duration, Since: self.Since}
+				change = Change{Automaton: self.Name, Old: self.State.Name, New: t.Next, Duration: duration, Since: self.Since, Trigger: event}
 			}
 
 			// emit leaving actions
