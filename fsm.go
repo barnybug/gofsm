@@ -117,28 +117,33 @@ func (self *Automaton) Process(event interface{}) {
 			now := time.Now()
 			var change Change
 			// is a state change happening
-			if self.State.Name != t.Next {
+			stateChanged := (self.State.Name != t.Next)
+
+			if stateChanged {
 				duration := now.Sub(self.Since)
 				change = Change{Automaton: self.Name, Old: self.State.Name, New: t.Next, Duration: duration, Since: self.Since, Trigger: event}
+
+				// emit leaving actions
+				for _, action := range self.State.Leaving {
+					self.actions <- Action{action, event, change}
+				}
 			}
 
-			// emit leaving actions
-			for _, action := range self.State.Leaving {
-				self.actions <- Action{action, event, change}
-			}
 			// emit transition actions
 			for _, action := range t.Actions {
 				self.actions <- Action{action, event, change}
 			}
+
 			// change state
-			if self.State.Name != t.Next {
+			if stateChanged {
 				self.State = self.sm[t.Next]
 				self.Since = now
 				self.changes <- change
-			}
-			// emit entering actions
-			for _, action := range self.State.Entering {
-				self.actions <- Action{action, event, change}
+
+				// emit entering actions
+				for _, action := range self.State.Entering {
+					self.actions <- Action{action, event, change}
+				}
 			}
 		}
 	}
