@@ -16,7 +16,7 @@ type S struct{}
 var _ = Suite(&S{})
 
 func (s *S) TestEvents(c *C) {
-	aut, err := LoadFile("simple.dfa")
+	aut, err := LoadFile("examples/simple.yaml")
 	c.Assert(err, Equals, nil)
 	dog, ok := aut.Automaton["simple"]
 	c.Assert(ok, Equals, true)
@@ -54,7 +54,7 @@ func (s *S) TestEvents(c *C) {
 }
 
 func (s *S) TestString(c *C) {
-	aut, _ := LoadFile("simple.dfa")
+	aut, _ := LoadFile("examples/simple.yaml")
 	c.Assert(aut.String(), Matches, "simple: Hungry for .*")
 
 	aut.Process("food.meat")
@@ -62,7 +62,7 @@ func (s *S) TestString(c *C) {
 }
 
 func (s *S) TestIgnoredEvent(c *C) {
-	aut, err := LoadFile("simple.dfa")
+	aut, err := LoadFile("examples/simple.yaml")
 	c.Assert(err, Equals, nil)
 	dog, ok := aut.Automaton["simple"]
 	c.Assert(ok, Equals, true)
@@ -74,7 +74,7 @@ func (s *S) TestIgnoredEvent(c *C) {
 }
 
 func (s *S) TestWildcardEvent(c *C) {
-	aut, err := LoadFile("simple.dfa")
+	aut, err := LoadFile("examples/simple.yaml")
 	c.Assert(err, Equals, nil)
 	dog, ok := aut.Automaton["simple"]
 	c.Assert(ok, Equals, true)
@@ -92,7 +92,7 @@ func (s *S) TestWildcardEvent(c *C) {
 }
 
 func (s *S) TestEvent(c *C) {
-	aut, err := LoadFile("simple.dfa")
+	aut, err := LoadFile("examples/simple.yaml")
 	c.Assert(err, Equals, nil)
 	dog, ok := aut.Automaton["simple"]
 	c.Assert(ok, Equals, true)
@@ -105,7 +105,7 @@ func (s *S) TestEvent(c *C) {
 
 // Check reentering the same state does not run leaving/entering actions.
 func (s *S) TestReenter(c *C) {
-	aut, _ := LoadFile("simple.dfa")
+	aut, _ := LoadFile("examples/simple.yaml")
 
 	// event
 	aut.Process("food.meat")
@@ -134,14 +134,14 @@ func (s *S) TestReenter(c *C) {
 }
 
 func (s *S) TestPersistRestore(c *C) {
-	aut, err := LoadFile("simple.dfa")
+	aut, err := LoadFile("examples/simple.yaml")
 	c.Assert(err, Equals, nil)
 	dog, _ := aut.Automaton["simple"]
 	c.Assert(dog.State.Name, Equals, "Hungry")
 
 	p := aut.Persist()
 
-	aut, err = LoadFile("simple.dfa")
+	aut, err = LoadFile("examples/simple.yaml")
 	aut.Restore(p)
 	dog, _ = aut.Automaton["simple"]
 	c.Assert(dog.State.Name, Equals, "Hungry")
