@@ -1,6 +1,7 @@
 ## gofsm
 
 [![Build Status](https://travis-ci.org/barnybug/gofsm.svg?branch=master)](https://travis-ci.org/barnybug/gofsm)
+[![GoDoc](https://godoc.org/github.com/barnybug/gofsm?status.svg)](http://godoc.org/github.com/barnybug/gofsm)
 
 Go library for building finite-state machines (automata).
 
