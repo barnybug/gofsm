@@ -145,6 +145,7 @@ func (self *Automaton) Process(event Event) {
 	for _, t := range self.State.Steps {
 		if event.Match(t.When) {
 			self.changeState(t.Next, event, t.Actions)
+			break
 		}
 	}
 }
