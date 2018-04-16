@@ -162,6 +162,8 @@ func (self *Automaton) load() error {
 
 	sm := map[string]*State{}
 
+	ambigMap := map[string]map[string]bool{}
+
 	var allStates []string
 	for name, val := range self.States {
 		state := State{Name: name}
@@ -170,6 +172,7 @@ func (self *Automaton) load() error {
 		sm[name] = &state
 
 		allStates = append(allStates, name)
+		ambigMap[name] = map[string]bool{}
 	}
 	self.sm = sm
 
@@ -229,6 +232,11 @@ func (self *Automaton) load() error {
 			}
 
 			for _, v := range trans {
+				// check this state hasn't this exact condition already
+				if ambigMap[from][v.When] {
+					return errors.New(fmt.Sprintf("State: %s condition: %s is ambiguous", from, v.When))
+				}
+				ambigMap[from][v.When] = true
 				t := Step{v.When, v.Actions, to}
 				sfrom.Steps = append(sfrom.Steps, t)
 			}

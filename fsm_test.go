@@ -203,3 +203,10 @@ func TestInvalid(t *testing.T) {
 	_, err := Load([]byte(conf))
 	assert.Error(err)
 }
+
+func TestAmbiguous(t *testing.T) {
+	assert := assert.New(t)
+
+	_, err := LoadFile("examples/ambiguous.yaml")
+	assert.Error(err)
+}
