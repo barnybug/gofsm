@@ -226,16 +226,16 @@ func (self *Automaton) load() error {
 			from, to := pair._1, pair._2
 			var sfrom *State
 			if sfrom, ok = self.sm[from]; !ok {
-				return errors.New(fmt.Sprintf("State: %s not found", from))
+				return fmt.Errorf("State: %s not found", from)
 			}
 			if _, ok := self.sm[to]; !ok {
-				return errors.New(fmt.Sprintf("State: %s not found", from))
+				return fmt.Errorf("State: %s not found", to)
 			}
 
 			for _, v := range trans {
 				// check this state hasn't this exact condition already
 				if ambigMap[from][v.When] {
-					return errors.New(fmt.Sprintf("State: %s condition: %s is ambiguous", from, v.When))
+					return fmt.Errorf("State: %s condition: %s is ambiguous", from, v.When)
 				}
 				ambigMap[from][v.When] = true
 				t := Step{v.When, v.Actions, to}
@@ -288,7 +288,7 @@ func Load(str []byte) (*Automata, error) {
 	for k, a := range aut.Automaton {
 		err := a.load()
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf("%s: %s", k, err.Error()))
+			return nil, fmt.Errorf("%s: %s", k, err.Error())
 		}
 		a.Name = k
 		a.actions = aut.Actions
